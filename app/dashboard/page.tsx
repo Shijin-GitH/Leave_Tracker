@@ -43,6 +43,7 @@ import { LeaveDetailsModal } from "@/components/leave-details-modal";
 import { Progress } from "@/components/ui/progress";
 import { PercentageModal } from "@/components/percentage-modal";
 import { useSubjects } from "@/hooks/use-subjects";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 
 interface LeaveRecord {
   id: string;
@@ -252,8 +253,32 @@ export default function DashboardPage() {
       <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-[100px] z-0 opacity-60"></div>
       <div className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-primary/5 rounded-full blur-[120px] z-0 opacity-40"></div>
 
-      {/* Header */}
-      <header className="bg-card/30 backdrop-blur-md border-b border-primary/10 relative z-10">
+      {/* Mobile Navbar */}
+      <nav className="sm:hidden flex items-center justify-between bg-card/80 backdrop-blur-md border-b border-primary/10 px-4 py-2 sticky top-0 z-20">
+        {/* Title */}
+        <span className="text-lg font-bold text-foreground heading-text">Leave Tracker</span>
+        {/* Sign Out Button */}
+        <button
+          onClick={handleSignOut}
+          className="p-2 rounded-md hover:bg-destructive/10 focus:outline-none"
+          aria-label="Sign Out"
+        >
+          <LogOut className="w-6 h-6 text-destructive" />
+        </button>
+      </nav>
+
+      {/* Floating Action Button (FAB) for Add Leave on mobile */}
+      <button
+        type="button"
+        onClick={() => setIsAddModalOpen(true)}
+        className="sm:hidden fixed bottom-6 right-6 z-30 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center text-3xl hover:bg-primary/90 focus:outline-none transition-all duration-200"
+        aria-label="Add Leave"
+      >
+        <Plus className="w-7 h-7" />
+      </button>
+
+      {/* Desktop Header */}
+      <header className="hidden sm:block bg-card/30 backdrop-blur-md border-b border-primary/10 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
@@ -307,6 +332,17 @@ export default function DashboardPage() {
             </AlertDescription>
           </Alert>
         )}
+
+        {/* Add Button for Mobile */}
+        {/* <div className="sm:hidden mb-4 flex w-full">
+          <Button
+            onClick={() => setIsAddModalOpen(true)}
+            className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/80 button-glow"
+          >
+            <Plus className="h-4 w-4" />
+            ADD LEAVE
+          </Button>
+        </div> */}
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -386,13 +422,47 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Main Content Tabs */}
+        {/* Mobile Segmented Control for Tabs */}
+        <div className="sm:hidden mb-4 flex justify-center">
+          <div className="max-w-full overflow-x-auto">
+            <div className="inline-flex whitespace-nowrap rounded-lg bg-card border border-primary/10 shadow-sm overflow-hidden">
+              <button
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors focus:outline-none ${activeTab === 'subjects' ? 'bg-primary text-primary-foreground shadow' : 'bg-transparent text-foreground hover:bg-primary/10'}`}
+                onClick={() => setActiveTab('subjects')}
+                aria-pressed={activeTab === 'subjects'}
+                type="button"
+              >
+                <PieChart className="h-4 w-4" />
+                Subjects
+              </button>
+              <button
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors focus:outline-none ${activeTab === 'timeline' ? 'bg-primary text-primary-foreground shadow' : 'bg-transparent text-foreground hover:bg-primary/10'}`}
+                onClick={() => setActiveTab('timeline')}
+                aria-pressed={activeTab === 'timeline'}
+                type="button"
+              >
+                <Calendar className="h-4 w-4" />
+                Timeline
+              </button>
+              <button
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors focus:outline-none ${activeTab === 'dutyleave' ? 'bg-primary text-primary-foreground shadow' : 'bg-transparent text-foreground hover:bg-primary/10'}`}
+                onClick={() => setActiveTab('dutyleave')}
+                aria-pressed={activeTab === 'dutyleave'}
+                type="button"
+              >
+                <User className="h-4 w-4" />
+                Duty Leave
+              </button>
+            </div>
+          </div>
+        </div>
         <Tabs
           defaultValue="subjects"
           className="mb-8"
+          value={activeTab}
           onValueChange={setActiveTab}
         >
-          <div className="flex justify-between items-center mb-4">
+          <div className="hidden sm:flex justify-between items-center mb-4">
             <TabsList className="bg-card/50 backdrop-blur-sm border border-primary/10">
               <TabsTrigger
                 value="subjects"
@@ -416,14 +486,16 @@ export default function DashboardPage() {
                 DUTY LEAVE
               </TabsTrigger>
             </TabsList>
-
-            <Button
-              onClick={() => setIsAddModalOpen(true)}
-              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/80 button-glow"
-            >
-              <Plus className="h-4 w-4" />
-              ADD LEAVE
-            </Button>
+            {/* Add button only on desktop */}
+            <div className="hidden sm:block">
+              <Button
+                onClick={() => setIsAddModalOpen(true)}
+                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/80 button-glow"
+              >
+                <Plus className="h-4 w-4" />
+                ADD LEAVE
+              </Button>
+            </div>
           </div>
 
           <TabsContent value="subjects" className="mt-0">

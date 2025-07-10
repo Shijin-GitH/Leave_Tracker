@@ -45,7 +45,7 @@ export function LeaveDetailsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] card-dark border-primary/30 backdrop-blur-sm">
+      <DialogContent className="w-full max-w-xs sm:max-w-lg card-dark border-primary/30 backdrop-blur-sm p-4 sm:p-6 pt-8">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center">
@@ -113,16 +113,16 @@ export function LeaveDetailsModal({
                     </div>
                   )}
                   {/* Edit/Delete Buttons */}
-                  <div className="flex justify-end gap-2 mt-4">
+                  <div className="flex flex-col sm:flex-row justify-end gap-2 mt-4">
                     <button
-                      className="px-3 py-1 rounded bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition"
+                      className="px-3 py-1 rounded bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition w-full sm:w-auto"
                       onClick={() => onEdit && onEdit(record)}
                       type="button"
                     >
                       Edit
                     </button>
                     <button
-                      className="px-3 py-1 rounded bg-destructive/10 text-destructive text-xs font-semibold hover:bg-destructive/20 transition"
+                      className="px-3 py-1 rounded bg-destructive/10 text-destructive text-xs font-semibold hover:bg-destructive/20 transition w-full sm:w-auto"
                       onClick={() => onDelete && onDelete(record)}
                       type="button"
                     >

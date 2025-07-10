@@ -70,7 +70,7 @@ export function PercentageModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[400px] card-dark border-primary/30 backdrop-blur-sm">
+      <DialogContent className="w-full max-w-xs sm:max-w-md card-dark border-primary/30 backdrop-blur-sm p-4 sm:p-6 pt-8">
         <DialogHeader>
           <DialogTitle className="heading-text text-xl text-foreground">
             Percentage Calculator
@@ -115,19 +115,19 @@ export function PercentageModal({
               required
             />
           </div>
-          <DialogFooter className="pt-4">
+          <DialogFooter className="pt-4 flex flex-col sm:flex-row gap-2 sm:gap-0">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
-              className="border-primary/30 hover:bg-secondary/80"
+              className="border-primary/30 hover:bg-secondary/80 w-full sm:w-auto"
             >
               CANCEL
             </Button>
             <Button
               type="submit"
               disabled={loading || !selectedSubject || !totalClasses}
-              className="bg-primary hover:bg-primary/80 button-glow"
+              className="bg-primary hover:bg-primary/80 button-glow w-full sm:w-auto"
             >
               CALCULATE
             </Button>
