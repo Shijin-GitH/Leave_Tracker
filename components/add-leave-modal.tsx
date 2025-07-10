@@ -155,7 +155,7 @@ export function AddLeaveModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="w-full max-w-xs sm:max-w-md card-dark border-primary/30 backdrop-blur-sm p-4 sm:p-6 pt-8">
+      <DialogContent className="w-full max-w-xs sm:max-w-md card-dark border-primary/30 backdrop-blur-sm p-4 sm:p-6 pt-8 sm:h-auto h-[100dvh]">
         <DialogHeader>
           <DialogTitle className="heading-text text-xl text-foreground">
             {editRecord ? "EDIT LEAVE RECORD" : "ADD LEAVE RECORD"}

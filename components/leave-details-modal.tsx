@@ -45,7 +45,7 @@ export function LeaveDetailsModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-xs sm:max-w-lg card-dark border-primary/30 backdrop-blur-sm p-4 sm:p-6 pt-8">
+      <DialogContent className="w-full max-w-xs sm:max-w-lg card-dark border-primary/30 backdrop-blur-sm p-4 sm:p-6 pt-8 sm:h-auto h-[100dvh]">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center">
