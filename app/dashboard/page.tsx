@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import { toast } from "sonner";
 import {
   collection,
   query,
@@ -36,6 +37,7 @@ import {
   ListTodo,
   PieChart,
   User,
+  Loader2,
 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AddLeaveModal } from "@/components/add-leave-modal";
@@ -52,6 +54,7 @@ interface LeaveRecord {
   period?: string;
   dutyLeave?: boolean;
   reason?: string;
+  certificateUrl?: string;
 }
 
 interface SubjectSummary {
@@ -83,6 +86,8 @@ export default function DashboardPage() {
   const { subjects: allSubjects, loading: loadingSubjects } = useSubjects();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [leaveToEdit, setLeaveToEdit] = useState<LeaveRecord | null>(null);
+  const [uploadingCertificate, setUploadingCertificate] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   useEffect(() => {
     // Check if Firebase is properly configured
@@ -644,19 +649,108 @@ export default function DashboardPage() {
                       .map((record) => (
                         <div
                           key={record.id}
-                          className="flex items-center justify-between border-b border-primary/10 pb-3 group"
+                          className="border border-primary/10 rounded-lg p-4 space-y-3 bg-secondary/30"
                         >
-                          <div className="space-y-1">
-                            <div className="font-medium text-foreground group-hover:text-primary transition-colors">
-                              {record.subject}
+                          <div className="flex items-start justify-between">
+                            <div className="space-y-1 flex-1">
+                              <div className="font-medium text-foreground">
+                                {record.subject}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {new Date(record.date).toLocaleDateString()} {record.period && (<span className='ml-2'>Period: {record.period}</span>)}
+                              </div>
                             </div>
-                            <div className="text-sm text-muted-foreground">
-                              {new Date(record.date).toLocaleDateString()} {record.period && (<span className='ml-2'>Period: {record.period}</span>)}
-                            </div>
+                            <Badge className="bg-blue-500/10 text-blue-500 border-0">
+                              Duty Leave
+                            </Badge>
                           </div>
-                          <Badge className="bg-blue-500/10 text-blue-500 border-0">
-                            Duty Leave
-                          </Badge>
+                          <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-primary/10">
+                            <label className="flex-1">
+                              <input
+                                type="file"
+                                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  setUploadingCertificate(record.id);
+                                  setUploadProgress(0);
+                                  try {
+                                    // For now, create a data URL (in production, upload to Firebase Storage)
+                                    const reader = new FileReader();
+                                    reader.onprogress = (event) => {
+                                      if (event.lengthComputable) {
+                                        const percentComplete = (event.loaded / event.total) * 100;
+                                        setUploadProgress(percentComplete);
+                                      }
+                                    };
+                                    reader.onload = async (event) => {
+                                      setUploadProgress(100);
+                                      const dataUrl = event.target?.result as string;
+                                      await updateDoc(doc(db, "leaves", record.id), {
+                                        certificateUrl: dataUrl,
+                                      });
+                                      await fetchLeaveRecords(user.uid);
+                                      toast.success("Certificate uploaded successfully!");
+                                    };
+                                    reader.readAsDataURL(file);
+                                  } catch (error) {
+                                    console.error("Error uploading certificate:", error);
+                                    toast.error("Failed to upload certificate");
+                                  } finally {
+                                    setUploadingCertificate(null);
+                                    setUploadProgress(0);
+                                  }
+                                }}
+                                className="hidden"
+                                disabled={uploadingCertificate === record.id}
+                              />
+                              <div className="space-y-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full sm:w-auto border-primary/30 hover:bg-primary/10 cursor-pointer"
+                                  disabled={uploadingCertificate === record.id}
+                                  onClick={(e) => {
+                                    const input = (e.currentTarget.parentElement?.parentElement?.querySelector('input[type="file"]') as HTMLInputElement);
+                                    input?.click();
+                                  }}
+                                >
+                                  {uploadingCertificate === record.id ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                      Uploading...
+                                    </>
+                                  ) : (
+                                    <>📄 {record.certificateUrl ? "Update" : "Upload"} Certificate</>
+                                  )}
+                                </Button>
+                                {uploadingCertificate === record.id && (
+                                  <div className="space-y-1">
+                                    <Progress value={uploadProgress} className="h-2" />
+                                    <p className="text-xs text-muted-foreground text-center">{Math.round(uploadProgress)}%</p>
+                                  </div>
+                                )}
+                              </div>
+                            </label>
+                            {record.certificateUrl && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="border-primary/30 hover:bg-primary/10"
+                                onClick={() => {
+                                  const link = document.createElement('a');
+                                  link.href = record.certificateUrl!;
+                                  link.download = `${record.subject}_${record.date}_certificate`;
+                                  link.click();
+                                  toast.success("Certificate downloaded!");
+                                }}
+                              >
+                                ⬇️ Download Certificate
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       ))}
                   </div>

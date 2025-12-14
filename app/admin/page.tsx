@@ -12,6 +12,7 @@ import {
   deleteDoc,
   doc,
   getDoc,
+  writeBatch,
 } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
@@ -172,6 +173,42 @@ export default function AdminPage() {
     } catch (error) {
       console.error("Error deleting subject:", error);
       toast.error("Failed to delete subject");
+    }
+  };
+
+  const handleDeleteAllLeaves = async () => {
+    if (
+      !confirm(
+        "Are you sure you want to DELETE ALL LEAVES? This action cannot be undone and will permanently remove all leave records from the system."
+      )
+    ) {
+      return;
+    }
+
+    try {
+      toast.loading("Deleting all leaves...");
+      const leavesCollection = collection(db, "leaves");
+      const querySnapshot = await getDocs(leavesCollection);
+
+      if (querySnapshot.empty) {
+        toast.dismiss();
+        toast.info("No leave records found to delete");
+        return;
+      }
+
+      // Use batch delete for better performance
+      const batch = writeBatch(db);
+      querySnapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+
+      await batch.commit();
+      toast.dismiss();
+      toast.success("All leave records deleted successfully");
+    } catch (error) {
+      console.error("Error deleting all leaves:", error);
+      toast.dismiss();
+      toast.error("Failed to delete all leaves");
     }
   };
 
@@ -385,6 +422,47 @@ export default function AdminPage() {
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Delete All Leaves Card */}
+          <Card className="card-dark border-destructive/20 overflow-hidden shadow-lg lg:col-span-2">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-destructive/5 rounded-bl-full"></div>
+            <CardHeader className="border-b border-destructive/10 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-destructive/10 rounded-lg">
+                  <AlertTriangle className="h-5 w-5 text-destructive" />
+                </div>
+                <div>
+                  <CardTitle className="heading-text text-lg font-bold text-destructive">
+                    DANGER ZONE
+                  </CardTitle>
+                  <CardDescription>
+                    Delete all leave records from the system
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-foreground mb-1">
+                    Delete All Leaves
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    This will permanently delete all leave records in the
+                    system. This action cannot be undone.
+                  </p>
+                </div>
+                <Button
+                  onClick={handleDeleteAllLeaves}
+                  variant="destructive"
+                  className="gap-2 shadow-lg hover:shadow-xl transition-all"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  DELETE ALL LEAVES
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>

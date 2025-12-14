@@ -1,7 +1,5 @@
 "use client";
 
-import type React from "react";
-
 import { useState, useEffect } from "react";
 import { collection, addDoc, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
@@ -29,6 +27,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -55,28 +55,48 @@ export function AddLeaveModal({
 }: AddLeaveModalProps) {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubject, setSelectedSubject] = useState("");
-  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [reason, setReason] = useState("");
   const [period, setPeriod] = useState<string>("");
   const [dutyLeave, setDutyLeave] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const [isMultiPeriod, setIsMultiPeriod] = useState(false);
+  const [selectedPeriods, setSelectedPeriods] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       fetchSubjects();
       if (editRecord) {
         setSelectedSubject(editRecord.subject || "");
-        setSelectedDate(editRecord.date ? new Date(editRecord.date) : undefined);
+        setSelectedDate(
+          editRecord.date ? new Date(editRecord.date) : undefined
+        );
         setReason(editRecord.reason || "");
-        setPeriod(editRecord.period || "");
-        setDutyLeave(editRecord.dutyLeave === true ? "yes" : editRecord.dutyLeave === false ? "no" : "");
+        const isMulti = Array.isArray(editRecord.period);
+        setIsMultiPeriod(isMulti);
+        if (isMulti) {
+          setSelectedPeriods(editRecord.period || []);
+          setPeriod("");
+        } else {
+          setPeriod(editRecord.period || "");
+          setSelectedPeriods([]);
+        }
+        setDutyLeave(
+          editRecord.dutyLeave === true
+            ? "yes"
+            : editRecord.dutyLeave === false
+            ? "no"
+            : ""
+        );
       } else {
         setSelectedSubject("");
         setSelectedDate(undefined);
         setReason("");
         setPeriod("");
         setDutyLeave("");
+        setIsMultiPeriod(false);
+        setSelectedPeriods([]);
       }
     }
   }, [isOpen, editRecord]);
@@ -85,11 +105,9 @@ export function AddLeaveModal({
     try {
       const querySnapshot = await getDocs(collection(db, "subjects"));
       const subjectList: Subject[] = [];
-
       querySnapshot.forEach((doc) => {
-        subjectList.push({ id: doc.id, ...doc.data() } as Subject);
+        subjectList.push({ id: doc.id, ...(doc.data() as any) } as Subject);
       });
-
       setSubjects(subjectList.sort((a, b) => a.name.localeCompare(b.name)));
     } catch (error) {
       console.error("Error fetching subjects:", error);
@@ -99,7 +117,8 @@ export function AddLeaveModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedSubject || !selectedDate || !period || !dutyLeave) {
+    const hasPeriod = isMultiPeriod ? selectedPeriods.length > 0 : period;
+    if (!selectedSubject || !selectedDate || !hasPeriod || !dutyLeave) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -113,20 +132,39 @@ export function AddLeaveModal({
 
     try {
       if (editRecord && onUpdate) {
+        // For edit, keep period as string (single period per record)
         await onUpdate({
           ...editRecord,
           subject: selectedSubject,
-          date: format(selectedDate, "yyyy-MM-dd"),
-          period,
+          date: format(selectedDate!, "yyyy-MM-dd"),
+          period: isMultiPeriod ? selectedPeriods[0] : period,
           dutyLeave: dutyLeave === "yes",
           reason: reason.trim(),
         });
         toast.success("Leave record updated successfully");
+      } else if (isMultiPeriod) {
+        // Create separate records for each selected period
+        for (const p of selectedPeriods) {
+          await addDoc(collection(db, "leaves"), {
+            userId: auth.currentUser.uid,
+            subject: selectedSubject,
+            date: format(selectedDate!, "yyyy-MM-dd"),
+            period: p,
+            dutyLeave: dutyLeave === "yes",
+            reason: reason.trim(),
+            createdAt: new Date().toISOString(),
+          });
+        }
+        toast.success(
+          `Leave record added for ${selectedPeriods.length} period(s)`
+        );
+        onLeaveAdded();
       } else {
+        // Single period record
         await addDoc(collection(db, "leaves"), {
           userId: auth.currentUser.uid,
           subject: selectedSubject,
-          date: format(selectedDate, "yyyy-MM-dd"),
+          date: format(selectedDate!, "yyyy-MM-dd"),
           period: period,
           dutyLeave: dutyLeave === "yes",
           reason: reason.trim(),
@@ -150,6 +188,8 @@ export function AddLeaveModal({
     setReason("");
     setPeriod("");
     setDutyLeave("");
+    setIsMultiPeriod(false);
+    setSelectedPeriods([]);
     onClose();
   };
 
@@ -161,7 +201,9 @@ export function AddLeaveModal({
             {editRecord ? "EDIT LEAVE RECORD" : "ADD LEAVE RECORD"}
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
-            {editRecord ? "Update the details for this leave entry" : "Record a new leave entry with subject and date details"}
+            {editRecord
+              ? "Update the details for this leave entry"
+              : "Record a new leave entry with subject and date details"}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
@@ -180,28 +222,6 @@ export function AddLeaveModal({
                 {subjects.map((subject) => (
                   <SelectItem key={subject.id} value={subject.name}>
                     {subject.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Period Dropdown */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="period"
-              className="text-sm uppercase tracking-wider text-muted-foreground"
-            >
-              Period <span className="text-primary">*</span>
-            </Label>
-            <Select value={period} onValueChange={setPeriod}>
-              <SelectTrigger className="w-full bg-secondary border-primary/30 focus:ring-primary">
-                <SelectValue placeholder="Select period (1-6)" />
-              </SelectTrigger>
-              <SelectContent className="bg-card border-primary/30">
-                {[1, 2, 3, 4, 5, 6].map((num) => (
-                  <SelectItem key={num} value={num.toString()}>
-                    Period {num}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -231,7 +251,7 @@ export function AddLeaveModal({
                   mode="single"
                   selected={selectedDate}
                   onSelect={(date) => {
-                    setSelectedDate(date);
+                    setSelectedDate(date || undefined);
                     if (date) setDatePopoverOpen(false);
                   }}
                   initialFocus
@@ -240,6 +260,87 @@ export function AddLeaveModal({
               </PopoverContent>
             </Popover>
           </div>
+
+          {/* Multi-Period Checkpoint */}
+          <div className="flex items-center space-x-3 p-3 border border-primary/20 rounded-lg bg-secondary/30">
+            <Checkbox
+              id="multiPeriod"
+              checked={isMultiPeriod}
+              onCheckedChange={(checked) => {
+                setIsMultiPeriod(!!checked);
+                setPeriod("");
+                setSelectedPeriods([]);
+              }}
+              className="border-primary/50"
+            />
+            <Label
+              htmlFor="multiPeriod"
+              className="text-sm font-medium text-muted-foreground cursor-pointer flex-1"
+            >
+              Spans multiple periods?
+            </Label>
+          </div>
+
+          {/* Single Period or Multiple Periods */}
+          {isMultiPeriod ? (
+            <div className="space-y-3">
+              <Label className="text-sm uppercase tracking-wider text-muted-foreground">
+                Select Periods <span className="text-primary">*</span>
+              </Label>
+              <ToggleGroup
+                type="multiple"
+                value={selectedPeriods}
+                onValueChange={(vals) =>
+                  setSelectedPeriods(
+                    [...vals].sort((a, b) => parseInt(a) - parseInt(b))
+                  )
+                }
+                className="grid grid-cols-3 gap-2"
+              >
+                {[1, 2, 3, 4, 5, 6].map((num) => (
+                  <ToggleGroupItem
+                    key={num}
+                    value={num.toString()}
+                    aria-label={`Period ${num}`}
+                    className="py-4 text-sm sm:text-base border rounded-md bg-card hover:bg-secondary/60 data-[state=on]:bg-primary/10 data-[state=on]:border-primary"
+                  >
+                    P{num}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+              {selectedPeriods.length > 0 && (
+                <div className="text-xs text-muted-foreground bg-primary/5 p-2 rounded border border-primary/10">
+                  Selected: Period {selectedPeriods.join(", ")}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label
+                htmlFor="period"
+                className="text-sm uppercase tracking-wider text-muted-foreground"
+              >
+                Period <span className="text-primary">*</span>
+              </Label>
+              <ToggleGroup
+                type="single"
+                value={period}
+                onValueChange={(val) => setPeriod(val || "")}
+                className="grid grid-cols-3 gap-2"
+              >
+                {[1, 2, 3, 4, 5, 6].map((num) => (
+                  <ToggleGroupItem
+                    key={num}
+                    value={num.toString()}
+                    aria-label={`Period ${num}`}
+                    className="py-4 text-sm sm:text-base border rounded-md bg-card hover:bg-secondary/60 data-[state=on]:bg-primary/10 data-[state=on]:border-primary"
+                  >
+                    P{num}
+                  </ToggleGroupItem>
+                ))}
+              </ToggleGroup>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label
@@ -288,7 +389,13 @@ export function AddLeaveModal({
             </Button>
             <Button
               type="submit"
-              disabled={loading || !selectedSubject || !selectedDate || !period || !dutyLeave}
+              disabled={
+                loading ||
+                !selectedSubject ||
+                !selectedDate ||
+                (isMultiPeriod ? selectedPeriods.length === 0 : !period) ||
+                !dutyLeave
+              }
               className="bg-primary hover:bg-primary/80 button-glow w-full sm:w-auto"
             >
               {loading ? (
