@@ -25,3 +25,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Google service account keys
+android/app/google-services.json
+
+# Capacitor native platforms
+/android/app/src/main/res/values/strings.xml
+
+# Build output of Capacitor native platforms
+/android/app/build/
+/android/.gradle/
+
+# Local configuration
+android/local.properties

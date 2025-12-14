@@ -6,11 +6,14 @@ import {
   onAuthStateChanged,
   signInWithPopup,
   GoogleAuthProvider,
+  signInWithCredential
 } from "firebase/auth";
 import { auth, isFirebaseConfigValid } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import Image from "next/image";
 
 export default function HomePage() {
@@ -46,22 +49,38 @@ export default function HomePage() {
   }, [router]);
 
   const handleGoogleSignIn = async () => {
-    if (!auth) {
-      setError("Firebase authentication is not available.");
-      return;
-    }
+  if (!auth) {
+    setError("Firebase authentication is not available.");
+    return;
+  }
 
-    try {
-      setError(null);
+  try {
+    setError(null);
+
+    if (Capacitor.isNativePlatform()) {
+      const result = await FirebaseAuthentication.signInWithGoogle();
+
+      // Check if credential exists and has an idToken
+      if (result.credential && result.credential.idToken) {
+        const credential = GoogleAuthProvider.credential(result.credential.idToken);
+        await signInWithCredential(auth, credential);
+      } else {
+        // This handles cases where the user closes the login popup
+        console.log("User cancelled the sign-in flow.");
+      }
+
+    } else {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-    } catch (error: any) {
-      console.error("Error signing in:", error);
-      setError(`Sign-in failed: ${error.message}`);
     }
-  };
 
-  if (loading) {
+  } catch (error: any) {
+    console.error("Error signing in:", error);
+    setError(`Sign-in failed: ${error.message}`);
+  }
+};
+
+  if (loading && !Capacitor.isNativePlatform()) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-16 h-16 relative">
