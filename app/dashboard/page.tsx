@@ -45,7 +45,12 @@ import { LeaveDetailsModal } from "@/components/leave-details-modal";
 import { Progress } from "@/components/ui/progress";
 import { PercentageModal } from "@/components/percentage-modal";
 import { useSubjects } from "@/hooks/use-subjects";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 interface LeaveRecord {
   id: string;
@@ -86,7 +91,9 @@ export default function DashboardPage() {
   const { subjects: allSubjects, loading: loadingSubjects } = useSubjects();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [leaveToEdit, setLeaveToEdit] = useState<LeaveRecord | null>(null);
-  const [uploadingCertificate, setUploadingCertificate] = useState<string | null>(null);
+  const [uploadingCertificate, setUploadingCertificate] = useState<
+    string | null
+  >(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
   useEffect(() => {
@@ -204,7 +211,8 @@ export default function DashboardPage() {
 
   const handleDeleteLeave = async (record: LeaveRecord) => {
     if (!db) return;
-    if (!window.confirm("Are you sure you want to delete this leave record?")) return;
+    if (!window.confirm("Are you sure you want to delete this leave record?"))
+      return;
     try {
       await deleteDoc(doc(db, "leaves", record.id));
       fetchLeaveRecords(user.uid);
@@ -261,7 +269,9 @@ export default function DashboardPage() {
       {/* Mobile Navbar */}
       <nav className="sm:hidden flex items-center justify-between bg-card/80 backdrop-blur-md border-b border-primary/10 px-4 py-2 sticky top-0 z-20">
         {/* Title */}
-        <span className="text-lg font-bold text-foreground heading-text">Leave Tracker</span>
+        <span className="text-lg font-bold text-foreground heading-text">
+          Leave Tracker
+        </span>
         {/* Sign Out Button */}
         <button
           onClick={handleSignOut}
@@ -432,27 +442,39 @@ export default function DashboardPage() {
           <div className="max-w-full overflow-x-auto">
             <div className="inline-flex whitespace-nowrap rounded-lg bg-card border border-primary/10 shadow-sm overflow-hidden">
               <button
-                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors focus:outline-none ${activeTab === 'subjects' ? 'bg-primary text-primary-foreground shadow' : 'bg-transparent text-foreground hover:bg-primary/10'}`}
-                onClick={() => setActiveTab('subjects')}
-                aria-pressed={activeTab === 'subjects'}
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors focus:outline-none ${
+                  activeTab === "subjects"
+                    ? "bg-primary text-primary-foreground shadow"
+                    : "bg-transparent text-foreground hover:bg-primary/10"
+                }`}
+                onClick={() => setActiveTab("subjects")}
+                aria-pressed={activeTab === "subjects"}
                 type="button"
               >
                 <PieChart className="h-4 w-4" />
                 Subjects
               </button>
               <button
-                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors focus:outline-none ${activeTab === 'timeline' ? 'bg-primary text-primary-foreground shadow' : 'bg-transparent text-foreground hover:bg-primary/10'}`}
-                onClick={() => setActiveTab('timeline')}
-                aria-pressed={activeTab === 'timeline'}
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors focus:outline-none ${
+                  activeTab === "timeline"
+                    ? "bg-primary text-primary-foreground shadow"
+                    : "bg-transparent text-foreground hover:bg-primary/10"
+                }`}
+                onClick={() => setActiveTab("timeline")}
+                aria-pressed={activeTab === "timeline"}
                 type="button"
               >
                 <Calendar className="h-4 w-4" />
                 Timeline
               </button>
               <button
-                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors focus:outline-none ${activeTab === 'dutyleave' ? 'bg-primary text-primary-foreground shadow' : 'bg-transparent text-foreground hover:bg-primary/10'}`}
-                onClick={() => setActiveTab('dutyleave')}
-                aria-pressed={activeTab === 'dutyleave'}
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium flex items-center gap-1 sm:gap-2 transition-colors focus:outline-none ${
+                  activeTab === "dutyleave"
+                    ? "bg-primary text-primary-foreground shadow"
+                    : "bg-transparent text-foreground hover:bg-primary/10"
+                }`}
+                onClick={() => setActiveTab("dutyleave")}
+                aria-pressed={activeTab === "dutyleave"}
                 type="button"
               >
                 <User className="h-4 w-4" />
@@ -542,7 +564,19 @@ export default function DashboardPage() {
                           <div className="flex flex-row items-center justify-center gap-6 w-full mt-2">
                             <div className="flex flex-col items-center">
                               <span className="text-2xl font-bold text-primary flex items-center gap-1">
-                                <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <svg
+                                  className="w-5 h-5 text-primary"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                  />
+                                </svg>
                                 {summary.count}
                               </span>
                               <span className="bg-primary/10 text-primary font-medium px-3 py-0.5 rounded-full text-xs mt-1 flex items-center gap-1">
@@ -551,7 +585,19 @@ export default function DashboardPage() {
                             </div>
                             <div className="flex flex-col items-center">
                               <span className="text-xl font-bold text-blue-500 flex items-center gap-1">
-                                <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                <svg
+                                  className="w-5 h-5 text-blue-500"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M5 13l4 4L19 7"
+                                  />
+                                </svg>
                                 {summary.dutyLeaveCount}
                               </span>
                               <span className="bg-blue-500/10 text-blue-500 font-medium px-3 py-0.5 rounded-full text-xs mt-1 flex items-center gap-1">
@@ -641,11 +687,15 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {leaveRecords.filter(lr => lr.dutyLeave).length > 0 ? (
+                {leaveRecords.filter((lr) => lr.dutyLeave).length > 0 ? (
                   <div className="space-y-4">
                     {leaveRecords
-                      .filter(lr => lr.dutyLeave)
-                      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                      .filter((lr) => lr.dutyLeave)
+                      .sort(
+                        (a, b) =>
+                          new Date(b.date).getTime() -
+                          new Date(a.date).getTime()
+                      )
                       .map((record) => (
                         <div
                           key={record.id}
@@ -657,7 +707,12 @@ export default function DashboardPage() {
                                 {record.subject}
                               </div>
                               <div className="text-sm text-muted-foreground">
-                                {new Date(record.date).toLocaleDateString()} {record.period && (<span className='ml-2'>Period: {record.period}</span>)}
+                                {new Date(record.date).toLocaleDateString()}{" "}
+                                {record.period && (
+                                  <span className="ml-2">
+                                    Period: {record.period}
+                                  </span>
+                                )}
                               </div>
                             </div>
                             <Badge className="bg-blue-500/10 text-blue-500 border-0">
@@ -679,22 +734,32 @@ export default function DashboardPage() {
                                     const reader = new FileReader();
                                     reader.onprogress = (event) => {
                                       if (event.lengthComputable) {
-                                        const percentComplete = (event.loaded / event.total) * 100;
+                                        const percentComplete =
+                                          (event.loaded / event.total) * 100;
                                         setUploadProgress(percentComplete);
                                       }
                                     };
                                     reader.onload = async (event) => {
                                       setUploadProgress(100);
-                                      const dataUrl = event.target?.result as string;
-                                      await updateDoc(doc(db, "leaves", record.id), {
-                                        certificateUrl: dataUrl,
-                                      });
+                                      const dataUrl = event.target
+                                        ?.result as string;
+                                      await updateDoc(
+                                        doc(db, "leaves", record.id),
+                                        {
+                                          certificateUrl: dataUrl,
+                                        }
+                                      );
                                       await fetchLeaveRecords(user.uid);
-                                      toast.success("Certificate uploaded successfully!");
+                                      toast.success(
+                                        "Certificate uploaded successfully!"
+                                      );
                                     };
                                     reader.readAsDataURL(file);
                                   } catch (error) {
-                                    console.error("Error uploading certificate:", error);
+                                    console.error(
+                                      "Error uploading certificate:",
+                                      error
+                                    );
                                     toast.error("Failed to upload certificate");
                                   } finally {
                                     setUploadingCertificate(null);
@@ -712,7 +777,10 @@ export default function DashboardPage() {
                                   className="w-full sm:w-auto border-primary/30 hover:bg-primary/10 cursor-pointer"
                                   disabled={uploadingCertificate === record.id}
                                   onClick={(e) => {
-                                    const input = (e.currentTarget.parentElement?.parentElement?.querySelector('input[type="file"]') as HTMLInputElement);
+                                    const input =
+                                      e.currentTarget.parentElement?.parentElement?.querySelector(
+                                        'input[type="file"]'
+                                      ) as HTMLInputElement;
                                     input?.click();
                                   }}
                                 >
@@ -722,13 +790,24 @@ export default function DashboardPage() {
                                       Uploading...
                                     </>
                                   ) : (
-                                    <>📄 {record.certificateUrl ? "Update" : "Upload"} Certificate</>
+                                    <>
+                                      📄{" "}
+                                      {record.certificateUrl
+                                        ? "Update"
+                                        : "Upload"}{" "}
+                                      Duty Leave
+                                    </>
                                   )}
                                 </Button>
                                 {uploadingCertificate === record.id && (
                                   <div className="space-y-1">
-                                    <Progress value={uploadProgress} className="h-2" />
-                                    <p className="text-xs text-muted-foreground text-center">{Math.round(uploadProgress)}%</p>
+                                    <Progress
+                                      value={uploadProgress}
+                                      className="h-2"
+                                    />
+                                    <p className="text-xs text-muted-foreground text-center">
+                                      {Math.round(uploadProgress)}%
+                                    </p>
                                   </div>
                                 )}
                               </div>
@@ -740,14 +819,14 @@ export default function DashboardPage() {
                                 size="sm"
                                 className="border-primary/30 hover:bg-primary/10"
                                 onClick={() => {
-                                  const link = document.createElement('a');
+                                  const link = document.createElement("a");
                                   link.href = record.certificateUrl!;
-                                  link.download = `${record.subject}_${record.date}_certificate`;
+                                  link.download = `${record.subject}_${record.date}_duty_leave`;
                                   link.click();
-                                  toast.success("Certificate downloaded!");
+                                  toast.success("Duty Leave downloaded!");
                                 }}
                               >
-                                ⬇️ Download Certificate
+                                ⬇️ Download Duty Leave
                               </Button>
                             )}
                           </div>
@@ -813,7 +892,9 @@ export default function DashboardPage() {
             setResult("N/A");
             return;
           }
-          const attendance = (((totalClasses - subj.length) / totalClasses) * 100).toFixed(2) + "%";
+          const attendance =
+            (((totalClasses - subj.length) / totalClasses) * 100).toFixed(2) +
+            "%";
           setResult(attendance);
         }}
       />
